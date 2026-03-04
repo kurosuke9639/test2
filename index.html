@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>働き方スタイル診断（四象限マップ）</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>働き方スタイル診断</h1>
+    <p class="lead">
+      2つの質問に答えると、あなたの働き方スタイルが四象限マップにプロットされます。<br>
+      深く考えすぎず、「いまの自分にいちばん近いもの」を選んでください。
+    </p>
+
+    <section class="question-section">
+      <form id="diagnosis-form">
+        <!-- Q1 -->
+        <fieldset>
+          <legend>Q1. 仕事に最も集中しやすい場所はどちらですか？</legend>
+          <label><input type="radio" name="q1" value="-2" /> 圧倒的に自宅</label>
+          <label><input type="radio" name="q1" value="-1" /> やや自宅</label>
+          <label><input type="radio" name="q1" value="0" /> どちらとも言えない</label>
+          <label><input type="radio" name="q1" value="1" /> ややオフィス</label>
+          <label><input type="radio" name="q1" value="2" /> 圧倒的にオフィス</label>
+        </fieldset>
+
+        <!-- Q2 -->
+        <fieldset>
+          <legend>Q2. 出社する主な目的として、どちらが近いですか？</legend>
+          <p class="note">※「出社の主な目的」に近いほうを選んでください。</p>
+          <label
+            ><input type="radio" name="q2" value="-2" />
+            雑談・気軽なコミュニケーションのため</label
+          >
+          <label><input type="radio" name="q2" value="-1" /> 雑談寄り</label>
+          <label><input type="radio" name="q2" value="0" /> どちらとも言えない</label>
+          <label
+            ><input type="radio" name="q2" value="1" />
+            業務上の対面コミュニケーション</label
+          >
+          <label
+            ><input type="radio" name="q2" value="2" />
+            上司やメンバーから、対面で評価・フィードバックをもらうため</label
+          >
+        </fieldset>
+
+        <button type="submit" id="submit-button">結果を見る</button>
+      </form>
+    </section>
+
+    <section id="result-section" class="result-section hidden">
+      <h2>診断結果</h2>
+      <div class="result-layout">
+        <!-- マップエリア -->
+        <div class="map-wrapper">
+          <svg id="style-map" viewBox="0 0 200 200">
+            <!-- 背景 -->
+            <rect x="0" y="0" width="200" height="200" class="map-bg" />
+            <!-- 軸 -->
+            <line x1="0" y1="100" x2="200" y2="100" class="axis" />
+            <line x1="100" y1="0" x2="100" y2="200" class="axis" />
+
+            <!-- 軸ラベル -->
+            <text x="6" y="12" class="axis-label">業務対面・評価</text>
+            <text x="6" y="195" class="axis-label">雑談・気軽な交流</text>
+            <text x="6" y="110" class="axis-label">自宅集中</text>
+            <text x="130" y="110" class="axis-label">オフィス集中</text>
+
+            <!-- ユーザーの点（位置はJSで更新） -->
+            <circle id="user-point" cx="100" cy="100" r="4" class="user-point" />
+          </svg>
+        </div>
+
+        <!-- テキスト結果エリア -->
+        <div class="text-result">
+          <p class="coords">
+            あなたの座標：<span id="coord-display">(x, y)</span>
+          </p>
+          <h3 id="type-name">タイプ名が入ります</h3>
+          <p id="type-subtitle" class="type-subtitle"></p>
+          <p id="type-description"></p>
+          <p id="type-hints" class="type-hints"></p>
+        </div>
+      </div>
+
+      <p class="caution">
+        ※この診断は、あくまで傾向をざっくり可視化するものです。<br>
+        その日の気分や環境によっても変わるため、「いまの自分の働き方を見直すきっかけ」としてご活用ください。
+      </p>
+    </section>
+
+    <footer>
+      <small>&copy; 働き方スタイル診断</small>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
