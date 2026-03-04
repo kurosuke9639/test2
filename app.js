@@ -229,7 +229,6 @@ function mapQ1Label(x) {
       return "";
   }
 }
-
 function mapQ2Label(y) {
   switch (y) {
     case -2:
@@ -238,6 +237,15 @@ function mapQ2Label(y) {
       return "どちらかといえば雑談寄りの目的";
     case 0:
       return "雑談と業務対面のどちらとも言えない";
+    case 1:
+      return "どちらかといえば業務上の対面コミュニケーション目的";
+    case 2:
+      return "対面での評価・フィードバック目的の出社が近い";
+    default:
+      return "";
+  }
+}
+
 function renderSummaryQuadrant(x, y) {
   const point = document.getElementById("summary-user-point");
   const minVal = -2;
@@ -251,6 +259,7 @@ function renderSummaryQuadrant(x, y) {
   point.setAttribute("cx", cx);
   point.setAttribute("cy", cy);
 }
+
 function renderAnswerList(answers) {
   const answerList = document.getElementById("answer-list");
   answerList.innerHTML = "";
