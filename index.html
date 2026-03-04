@@ -157,9 +157,39 @@
           <textarea name="q9" class="large-textarea" rows="4" placeholder="回答を入力してください"></textarea>
         </fieldset>
 
-        <button type="submit">アンケートを送信</button>
+         <button type="button" onclick="summarizeResult()">結果をまとめる</button>
       </form>
-    </section>
+      <section id="summary-section" class="summary-section hidden">
+        <h2>結果のまとめ</h2>
+
+        <!-- ❶ 四象限（SVG を再利用して表示） -->
+        <div class="map-wrapper">
+          <svg id="summary-style-map" viewBox="0 0 200 200">
+            <rect x="0" y="0" width="200" height="200" class="map-bg" />
+            <line x1="0" y1="100" x2="200" y2="100" class="axis" />
+            <line x1="100" y1="0" x2="100" y2="200" class="axis" />
+
+            <text x="6" y="12" class="axis-label">業務対面・評価</text>
+            <text x="6" y="195" class="axis-label">雑談・気軽な交流</text>
+            <text x="6" y="110" class="axis-label">自宅集中</text>
+            <text x="130" y="110" class="axis-label">オフィス集中</text>
+
+            <circle id="summary-user-point" cx="100" cy="100" r="4" class="user-point" />
+          </svg>
+        </div>
+
+        <!-- ❷ 設問と回答の列挙 -->
+        <h3>あなたの回答一覧</h3>
+        <div id="answer-list" class="answer-list"></div>
+
+        <!-- ❹ メッセージ -->
+        <p id="copy-message" class="copy-message hidden">
+          生成AIで回答を分析するためのプロンプトと一緒にコピーしました。ご自身の生成AIで分析してみてくださいね！
+        </p>
+
+        <!-- ❷＋❸＋❹ のコピー内容 -->
+        <textarea id="copy-buffer" class="copy-buffer" readonly></textarea>
+      </section>
     <!-- アンケートここまで -->
     <footer>
       <small>&copy; 働き方スタイル診断</small>
