@@ -44,6 +44,8 @@ const typeDefinitions = {
 
 // DOM の取得
 const form = document.getElementById("diagnosis-form");
+const surveyForm = document.getElementById("survey-form");
+const summarySection = document.getElementById("summary-section");
 const resultSection = document.getElementById("result-section");
 const coordDisplay = document.getElementById("coord-display");
 const typeName = document.getElementById("type-name");
@@ -148,4 +150,172 @@ function sendResult(payload) {
   //   headers: { "Content-Type": "application/json" },
   //   body: JSON.stringify(payload),
   // });
+}
+function summarizeResult() {
+  // Q1,Q2 の値を取得（既存の関数を使う）
+  const q1Value = getRadioValue("q1");
+  const q2Value = getRadioValue("q2");
+
+  if (q1Value === null || q2Value === null) {
+    alert("まず Q1 と Q2 に回答し、マップにプロットしてください。");
+    return;
+  }
+
+  // アンケート側の回答を取得
+  const formData = new FormData(surveyForm);
+  const answers = {};
+
+  // Q1,Q2 は数値 → 軸の意味用の日本語に変換
+  answers.q1 = mapQ1Label(Number(q1Value));
+  answers.q2 = mapQ2Label(Number(q2Value));
+
+  // 単一選択 Q3,4,6,7
+  ["q3", "q4", "q6", "q7"].forEach((name) => {
+    const v = formData.get(name);
+    if (v) answers[name] = v;
+  });
+
+  // 複数選択 Q5
+  const q5Values = formData.getAll("q5");
+  if (q5Values.length > 0) {
+    answers.q5 = q5Values;
+  }
+
+  // 自由記述 Q8,9
+  ["q8", "q9"].forEach((name) => {
+    const v = formData.get(name);
+    if (v && v.trim() !== "") {
+      answers[name] = v.trim();
+    }
+  });
+
+  // ❶ 四象限を再表示
+  renderSummaryQuadrant(Number(q1Value), Number(q2Value));
+
+  // ❷ 設問＋回答を画面に列挙
+  renderAnswerList(answers);
+
+  // ❷＋❸＋❹ をコピー用テキストに
+  const copyText = buildCopyText(answers);
+  const copyBuffer = document.getElementById("copy-buffer");
+  copyBuffer.value = copyText;
+
+  // クリップボードへコピー
+  navigator.clipboard
+    .writeText(copyText)
+    .then(() => {
+      document.getElementById("copy-message").classList.remove("hidden");
+    })
+    .catch(() => {
+      document.getElementById("copy-message").classList.remove("hidden");
+    });
+
+  // ❶❷❹ を表示
+  summarySection.classList.remove("hidden");
+}
+function mapQ1Label(x) {
+  switch (x) {
+    case -2:
+      return "圧倒的に自宅で集中しやすい";
+    case -1:
+      return "やや自宅で集中しやすい";
+    case 0:
+      return "自宅・オフィスどちらとも言えない";
+    case 1:
+      return "ややオフィスで集中しやすい";
+    case 2:
+      return "圧倒的にオフィスで集中しやすい";
+    default:
+      return "";
+  }
+}
+
+function mapQ2Label(y) {
+  switch (y) {
+    case -2:
+      return "雑談・気軽なコミュニケーション目的の出社が近い";
+    case -1:
+      return "どちらかといえば雑談寄りの目的";
+    case 0:
+      return "雑談と業務対面のどちらとも言えない";
+function renderSummaryQuadrant(x, y) {
+  const point = document.getElementById("summary-user-point");
+  const minVal = -2;
+  const maxVal = 2;
+  const svgMin = 0;
+  const svgMax = 200;
+
+  const cx = mapRange(x, minVal, maxVal, svgMin, svgMax);
+  const cy = mapRange(-y, minVal, maxVal, svgMin, svgMax);
+
+  point.setAttribute("cx", cx);
+  point.setAttribute("cy", cy);
+}
+function renderAnswerList(answers) {
+  const answerList = document.getElementById("answer-list");
+  answerList.innerHTML = "";
+
+  const questionText = {
+    q1: "Q1. 仕事に最も集中しやすい場所はどちらですか？",
+    q2: "Q2. 出社する主な目的として、どちらが近いですか？",
+    q3: "Q3. 自宅またはオフィスでの集中を妨げる要因について教えてください。",
+    q4: "Q4. 「集中が必要な業務」を行う際、最適だと思う場所を教えてください。",
+    q5: "Q5. 出社することで得たいものを教えてください。",
+    q6: "Q6. 雑談や偶発的なコミュニケーションをどの程度重視しますか？",
+    q7: "Q7. 対面での評価やフィードバックをどの程度重要だと感じますか？",
+    q8: "Q8. 理想的な勤務スタイル（出社と在宅の割合）についてご意見があれば教えてください。",
+    q9: "Q9. 出社やリモートワークの運用に関して、ご希望や改善点があれば自由にお書きください。",
+  };
+
+  Object.keys(questionText).forEach((key) => {
+    if (answers[key] === undefined) return;
+    const p = document.createElement("p");
+    const label = questionText[key];
+
+    if (Array.isArray(answers[key])) {
+      p.textContent = `${label} ${answers[key].join(" / ")}`;
+    } else {
+      p.textContent = `${label} ${answers[key]}`;
+    }
+    answerList.appendChild(p);
+  });
+}
+
+function buildCopyText(answers) {
+  const questionText = {
+    q1: "Q1. 仕事に最も集中しやすい場所はどちらですか？",
+    q2: "Q2. 出社する主な目的として、どちらが近いですか？",
+    q3: "Q3. 自宅またはオフィスでの集中を妨げる要因について教えてください。",
+    q4: "Q4. 「集中が必要な業務」を行う際、最適だと思う場所を教えてください。",
+    q5: "Q5. 出社することで得たいものを教えてください。",
+    q6: "Q6. 雑談や偶発的なコミュニケーションをどの程度重視しますか？",
+    q7: "Q7. 対面での評価やフィードバックをどの程度重要だと感じますか？",
+    q8: "Q8. 理想的な勤務スタイル（出社と在宅の割合）についてご意見があれば教えてください。",
+    q9: "Q9. 出社やリモートワークの運用に関して、ご希望や改善点があれば自由にお書きください。",
+  };
+
+  const lines = [];
+  lines.push("▼働き方のスタイルに関する質問と回答");
+
+  Object.keys(questionText).forEach((key) => {
+    if (answers[key] === undefined) return;
+    const label = questionText[key];
+    if (Array.isArray(answers[key])) {
+      lines.push(`${label} ${answers[key].join(" / ")}`);
+    } else {
+      lines.push(`${label} ${answers[key]}`);
+    }
+  });
+  lines.push("");
+
+  lines.push(
+    "これらは回答者の働き方のスタイルに関する回答結果である。これらの質問・回答を踏まえて、回答者はどんな働き方をしていったらよいかアドバイスがほしい。"
+  );
+  lines.push("");
+
+  lines.push(
+    "生成AIで回答を分析するためのプロンプトと一緒にコピーしました。ご自身の生成AIで分析してみてくださいね！"
+  );
+
+  return lines.join("\n");
 }
