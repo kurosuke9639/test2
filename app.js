@@ -56,7 +56,7 @@ const typeHints = document.getElementById("type-hints");
 // SVG の点
 const userPoint = document.getElementById("user-point");
 
-// フォーム送信時の処理
+// フォーム送信時の処理（Q1,Q2 → マップ）
 form.addEventListener("submit", function (event) {
   event.preventDefault();
 
@@ -71,10 +71,8 @@ form.addEventListener("submit", function (event) {
   const x = Number(q1Value);
   const y = Number(q2Value);
 
-  // 座標表示（不要ならこの行ごと削除可）
   coordDisplay.textContent = `(${x}, ${y})`;
 
-  // タイプ判定
   const typeKey = judgeType(x, y);
   const typeInfo = typeDefinitions[typeKey];
 
@@ -83,52 +81,37 @@ form.addEventListener("submit", function (event) {
   typeDescription.textContent = typeInfo.description;
   typeHints.textContent = typeInfo.hints;
 
-  // マップ上にプロット
   plotPoint(x, y);
-
-  // 結果セクションを表示
   resultSection.classList.remove("hidden");
-
-  // 将来拡張用：結果送信フック（現状は何もしない）
-  // sendResult({ x, y, type: typeKey });
 });
 
 // ラジオボタンの値を取得
 function getRadioValue(name) {
   const nodes = document.querySelectorAll(`input[name="${name}"]`);
   for (const node of nodes) {
-    if (node.checked) {
-      return node.value;
-    }
+    if (node.checked) return node.value;
   }
   return null;
 }
 
 // タイプ判定：境界型を優先
 function judgeType(x, y) {
-  if (x === 0 || y === 0) {
-    return "boundary";
-  }
-
-  if (x > 0 && y > 0) return "A"; // オフィス集中 × 業務対面
-  if (x > 0 && y < 0) return "B"; // オフィス集中 × 雑談
-  if (x < 0 && y > 0) return "C"; // 自宅集中 × 業務対面
-  if (x < 0 && y < 0) return "D"; // 自宅集中 × 雑談
-
-  // 念のため
+  if (x === 0 || y === 0) return "boundary";
+  if (x > 0 && y > 0) return "A";
+  if (x > 0 && y < 0) return "B";
+  if (x < 0 && y > 0) return "C";
+  if (x < 0 && y < 0) return "D";
   return "boundary";
 }
 
 // SVG上に点を配置する
 function plotPoint(x, y) {
-  // x,y ∈ {-2,-1,0,1,2} を SVG座標 0〜200 に線形変換
   const minVal = -2;
   const maxVal = 2;
   const svgMin = 0;
   const svgMax = 200;
 
   const cx = mapRange(x, minVal, maxVal, svgMin, svgMax);
-  // SVG は yが下に行くほど値が大きいので、上下を反転
   const cy = mapRange(-y, minVal, maxVal, svgMin, svgMax);
 
   userPoint.setAttribute("cx", cx);
@@ -137,22 +120,18 @@ function plotPoint(x, y) {
 
 // 数値を別レンジに変換
 function mapRange(value, inMin, inMax, outMin, outMax) {
-  return (
-    ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin
-  );
+  return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
 }
 
 // 将来の保存拡張用：今は何もしない
 function sendResult(payload) {
-  // 例：
-  // fetch("https://script.google.com/macros/s/xxxxxxx/exec", {
-  //   method: "POST",
-  //   headers: { "Content-Type": "application/json" },
-  //   body: JSON.stringify(payload),
-  // });
+  // ここは未使用
 }
+
+// ===== ここから「結果をまとめる」機能 =====
+
 function summarizeResult() {
-  // Q1,Q2 の値を取得（既存の関数を使う）
+  // Q1,Q2 の値を取得
   const q1Value = getRadioValue("q1");
   const q2Value = getRadioValue("q2");
 
@@ -165,7 +144,7 @@ function summarizeResult() {
   const formData = new FormData(surveyForm);
   const answers = {};
 
-  // Q1,Q2 は数値 → 軸の意味用の日本語に変換
+  // Q1,Q2 は数値 → 日本語ラベルに変換
   answers.q1 = mapQ1Label(Number(q1Value));
   answers.q2 = mapQ2Label(Number(q2Value));
 
@@ -177,16 +156,12 @@ function summarizeResult() {
 
   // 複数選択 Q5
   const q5Values = formData.getAll("q5");
-  if (q5Values.length > 0) {
-    answers.q5 = q5Values;
-  }
+  if (q5Values.length > 0) answers.q5 = q5Values;
 
   // 自由記述 Q8,9
   ["q8", "q9"].forEach((name) => {
     const v = formData.get(name);
-    if (v && v.trim() !== "") {
-      answers[name] = v.trim();
-    }
+    if (v && v.trim() !== "") answers[name] = v.trim();
   });
 
   // ❶ 四象限を再表示
@@ -213,6 +188,7 @@ function summarizeResult() {
   // ❶❷❹ を表示
   summarySection.classList.remove("hidden");
 }
+
 function mapQ1Label(x) {
   switch (x) {
     case -2:
@@ -229,6 +205,7 @@ function mapQ1Label(x) {
       return "";
   }
 }
+
 function mapQ2Label(y) {
   switch (y) {
     case -2:
