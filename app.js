@@ -1,3 +1,5 @@
+// === 診断ロジック一式 ===
+
 // タイプ定義：象限ごとの文言
 const typeDefinitions = {
   A: {
@@ -42,50 +44,120 @@ const typeDefinitions = {
   },
 };
 
-// DOM の取得
-const form = document.getElementById("diagnosis-form");
-console.log("form =", form);
-const surveyForm = document.getElementById("survey-form");
-const summarySection = document.getElementById("summary-section");
-const resultSection = document.getElementById("result-section");
-const coordDisplay = document.getElementById("coord-display");
-const typeName = document.getElementById("type-name");
-const typeSubtitle = document.getElementById("type-subtitle");
-const typeDescription = document.getElementById("type-description");
-const typeHints = document.getElementById("type-hints");
+// DOM が全部読まれてから動かす
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("=== app.js loaded ===");
 
-// SVG の点
-const userPoint = document.getElementById("user-point");
+  // DOM の取得
+  const diagnosisForm = document.getElementById("diagnosis-form");
+  const diagnosisButton = document.getElementById("diagnosis-button");
+  const surveyForm = document.getElementById("survey-form"); // アンケートがなければ null でもOK
 
-// フォーム送信時の処理（Q1,Q2 → マップ）
-form.addEventListener("submit", function (event) {
-  console.log("submit fired");
-  event.preventDefault();
+  const summarySection = document.getElementById("summary-section");
+  const resultSection = document.getElementById("result-section");
+  const coordDisplay = document.getElementById("coord-display");
+  const typeName = document.getElementById("type-name");
+  const typeSubtitle = document.getElementById("type-subtitle");
+  const typeDescription = document.getElementById("type-description");
+  const typeHints = document.getElementById("type-hints");
+  const userPoint = document.getElementById("user-point");
 
-  const q1Value = getRadioValue("q1");
-  const q2Value = getRadioValue("q2");
+  console.log("diagnosisForm =", diagnosisForm);
+  console.log("diagnosisButton =", diagnosisButton);
 
-  if (q1Value === null || q2Value === null) {
-    alert("Q1とQ2の両方に回答してください。");
+  if (!diagnosisForm || !diagnosisButton) {
+    console.error("診断フォームまたはボタンが見つかりません");
     return;
   }
 
-  const x = Number(q1Value);
-  const y = Number(q2Value);
+  // 「結果を見る」ボタンクリックで診断処理
+  diagnosisButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    console.log("diagnosis button clicked");
 
-  coordDisplay.textContent = `(${x}, ${y})`;
+    const q1Value = getRadioValue("q1");
+    const q2Value = getRadioValue("q2");
 
-  const typeKey = judgeType(x, y);
-  const typeInfo = typeDefinitions[typeKey];
+    if (q1Value === null || q2Value === null) {
+      alert("Q1とQ2の両方に回答してください。");
+      return;
+    }
 
-  typeName.textContent = typeInfo.name;
-  typeSubtitle.textContent = typeInfo.subtitle;
-  typeDescription.textContent = typeInfo.description;
-  typeHints.textContent = typeInfo.hints;
+    const x = Number(q1Value);
+    const y = Number(q2Value);
 
-  plotPoint(x, y);
-  resultSection.classList.remove("hidden");
+    if (coordDisplay) coordDisplay.textContent = `(${x}, ${y})`;
+
+    const typeKey = judgeType(x, y);
+    const typeInfo = typeDefinitions[typeKey];
+
+    if (typeName) typeName.textContent = typeInfo.name;
+    if (typeSubtitle) typeSubtitle.textContent = typeInfo.subtitle;
+    if (typeDescription) typeDescription.textContent = typeInfo.description;
+    if (typeHints) typeHints.textContent = typeInfo.hints;
+
+    if (userPoint) plotPoint(userPoint, x, y);
+    if (resultSection) resultSection.classList.remove("hidden");
+  });
+
+  // ===== 以下はアンケート結果まとめ用（あれば動く／なければスルー） =====
+
+  window.summarizeResult = function summarizeResult() {
+    if (!surveyForm) {
+      alert("アンケートフォームが見つかりません。");
+      return;
+    }
+
+    const q1Value = getRadioValue("q1");
+    const q2Value = getRadioValue("q2");
+
+    if (q1Value === null || q2Value === null) {
+      alert("まず Q1 と Q2 に回答し、マップにプロットしてください。");
+      return;
+    }
+
+    const formData = new FormData(surveyForm);
+    const answers = {};
+
+    answers.q1 = mapQ1Label(Number(q1Value));
+    answers.q2 = mapQ2Label(Number(q2Value));
+
+    ["q3", "q4", "q6", "q7"].forEach((name) => {
+      const v = formData.get(name);
+      if (v) answers[name] = v;
+    });
+
+    const q5Values = formData.getAll("q5");
+    if (q5Values.length > 0) answers.q5 = q5Values;
+
+    ["q8", "q9"].forEach((name) => {
+      const v = formData.get(name);
+      if (v && v.trim() !== "") answers[name] = v.trim();
+    });
+
+    renderSummaryQuadrant(Number(q1Value), Number(q2Value));
+    renderAnswerList(answers);
+
+    const copyText = buildCopyText(answers);
+    const copyBuffer = document.getElementById("copy-buffer");
+    if (copyBuffer) copyBuffer.value = copyText;
+
+    navigator.clipboard
+      .writeText(copyText)
+      .then(() => {
+        const msg = document.getElementById("copy-message");
+        if (msg) msg.classList.remove("hidden");
+      })
+      .catch(() => {
+        const msg = document.getElementById("copy-message");
+        if (msg) msg.classList.remove("hidden");
+      });
+
+    if (summarySection) summarySection.classList.remove("hidden");
+  };
 });
+
+// ===== 共通関数 =====
 
 // ラジオボタンの値を取得
 function getRadioValue(name) {
@@ -106,8 +178,8 @@ function judgeType(x, y) {
   return "boundary";
 }
 
-// SVG上に点を配置する
-function plotPoint(x, y) {
+// SVG 上に点を配置する
+function plotPoint(pointElement, x, y) {
   const minVal = -2;
   const maxVal = 2;
   const svgMin = 0;
@@ -116,8 +188,8 @@ function plotPoint(x, y) {
   const cx = mapRange(x, minVal, maxVal, svgMin, svgMax);
   const cy = mapRange(-y, minVal, maxVal, svgMin, svgMax);
 
-  userPoint.setAttribute("cx", cx);
-  userPoint.setAttribute("cy", cy);
+  pointElement.setAttribute("cx", cx);
+  pointElement.setAttribute("cy", cy);
 }
 
 // 数値を別レンジに変換
@@ -125,72 +197,7 @@ function mapRange(value, inMin, inMax, outMin, outMax) {
   return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
 }
 
-// 将来の保存拡張用：今は何もしない
-function sendResult(payload) {
-  // ここは未使用
-}
-
-// ===== ここから「結果をまとめる」機能 =====
-
-function summarizeResult() {
-  // Q1,Q2 の値を取得
-  const q1Value = getRadioValue("q1");
-  const q2Value = getRadioValue("q2");
-
-  if (q1Value === null || q2Value === null) {
-    alert("まず Q1 と Q2 に回答し、マップにプロットしてください。");
-    return;
-  }
-
-  // アンケート側の回答を取得
-  const formData = new FormData(surveyForm);
-  const answers = {};
-
-  // Q1,Q2 は数値 → 日本語ラベルに変換
-  answers.q1 = mapQ1Label(Number(q1Value));
-  answers.q2 = mapQ2Label(Number(q2Value));
-
-  // 単一選択 Q3,4,6,7
-  ["q3", "q4", "q6", "q7"].forEach((name) => {
-    const v = formData.get(name);
-    if (v) answers[name] = v;
-  });
-
-  // 複数選択 Q5
-  const q5Values = formData.getAll("q5");
-  if (q5Values.length > 0) answers.q5 = q5Values;
-
-  // 自由記述 Q8,9
-  ["q8", "q9"].forEach((name) => {
-    const v = formData.get(name);
-    if (v && v.trim() !== "") answers[name] = v.trim();
-  });
-
-  // ❶ 四象限を再表示
-  renderSummaryQuadrant(Number(q1Value), Number(q2Value));
-
-  // ❷ 設問＋回答を画面に列挙
-  renderAnswerList(answers);
-
-  // ❷＋❸＋❹ をコピー用テキストに
-  const copyText = buildCopyText(answers);
-  const copyBuffer = document.getElementById("copy-buffer");
-  copyBuffer.value = copyText;
-
-  // クリップボードへコピー
-  navigator.clipboard
-    .writeText(copyText)
-    .then(() => {
-      document.getElementById("copy-message").classList.remove("hidden");
-    })
-    .catch(() => {
-      document.getElementById("copy-message").classList.remove("hidden");
-    });
-
-  // ❶❷❹ を表示
-  summarySection.classList.remove("hidden");
-}
-
+// Q1 ラベル
 function mapQ1Label(x) {
   switch (x) {
     case -2:
@@ -208,6 +215,7 @@ function mapQ1Label(x) {
   }
 }
 
+// Q2 ラベル
 function mapQ2Label(y) {
   switch (y) {
     case -2:
@@ -225,8 +233,11 @@ function mapQ2Label(y) {
   }
 }
 
+// サマリー用の四象限
 function renderSummaryQuadrant(x, y) {
   const point = document.getElementById("summary-user-point");
+  if (!point) return;
+
   const minVal = -2;
   const maxVal = 2;
   const svgMin = 0;
@@ -239,8 +250,11 @@ function renderSummaryQuadrant(x, y) {
   point.setAttribute("cy", cy);
 }
 
+// 設問＋回答を列挙
 function renderAnswerList(answers) {
   const answerList = document.getElementById("answer-list");
+  if (!answerList) return;
+
   answerList.innerHTML = "";
 
   const questionText = {
@@ -269,6 +283,7 @@ function renderAnswerList(answers) {
   });
 }
 
+// コピー用テキスト生成
 function buildCopyText(answers) {
   const questionText = {
     q1: "Q1. 仕事に最も集中しやすい場所はどちらですか？",
