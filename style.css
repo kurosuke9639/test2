@@ -165,3 +165,6 @@ footer {
     height: auto;
   }
 }
+.multi-select-note {
+  color: red;
+}
