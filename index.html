@@ -89,7 +89,78 @@
         その日の気分や環境によっても変わるため、「いまの自分の働き方を見直すきっかけ」としてご活用ください。
       </p>
     </section>
+    <!-- ここからアンケート -->
+    <section class="question-section">
+      <h2>追加アンケート</h2>
+      <form id="survey-form">
+        <!-- Q3 -->
+        <fieldset>
+          <legend>Q3. 自宅またはオフィスでの集中を妨げる要因について教えてください。（単一選択）</legend>
+          <label><input type="radio" name="q3" value="自宅のほうが雑音や家事で集中しにくい"> 自宅のほうが雑音や家事で集中しにくい</label>
+          <label><input type="radio" name="q3" value="オフィスのほうが雑音や会話が多く集中しにくい"> オフィスのほうが雑音や会話が多く集中しにくい</label>
+          <label><input type="radio" name="q3" value="双方同程度"> 双方同程度</label>
+          <label><input type="radio" name="q3" value="特に感じていない"> 特に感じていない</label>
+          <label><input type="radio" name="q3" value="その他"> その他</label>
+        </fieldset>
 
+        <!-- Q4 -->
+        <fieldset>
+          <legend>Q4. 「集中が必要な業務」を行う際、最適だと思う場所を教えてください。（単一選択）</legend>
+          <label><input type="radio" name="q4" value="主に自宅"> 主に自宅</label>
+          <label><input type="radio" name="q4" value="どちらかというと自宅"> どちらかというと自宅</label>
+          <label><input type="radio" name="q4" value="どちらでもよい"> どちらでもよい</label>
+          <label><input type="radio" name="q4" value="どちらかというとオフィス"> どちらかというとオフィス</label>
+          <label><input type="radio" name="q4" value="主にオフィス"> 主にオフィス</label>
+        </fieldset>
+
+        <!-- Q5 -->
+        <fieldset>
+          <legend>Q5. 出社することで得たいものを教えてください。（複数選択）</legend>
+          <label><input type="checkbox" name="q5" value="雑談・気軽な交流"> 雑談・気軽な交流</label>
+          <label><input type="checkbox" name="q5" value="チームの一体感"> チームの一体感</label>
+          <label><input type="checkbox" name="q5" value="相談・議論のスピード感"> 相談・議論のスピード感</label>
+          <label><input type="checkbox" name="q5" value="上司や同僚と直接話すことでの納得感"> 上司や同僚と直接話すことでの納得感</label>
+          <label><input type="checkbox" name="q5" value="フィードバックや評価を対面で受けられる"> フィードバックや評価を対面で受けられる</label>
+          <label><input type="checkbox" name="q5" value="気分転換"> 気分転換</label>
+          <label><input type="checkbox" name="q5" value="特にない"> 特にない</label>
+        </fieldset>
+
+        <!-- Q6 -->
+        <fieldset>
+          <legend>Q6. 雑談や偶発的なコミュニケーションをどの程度重視しますか？（単一選択）</legend>
+          <label><input type="radio" name="q6" value="全く重視しない"> 全く重視しない</label>
+          <label><input type="radio" name="q6" value="どちらかというと重視しない"> どちらかというと重視しない</label>
+          <label><input type="radio" name="q6" value="どちらともいえない"> どちらともいえない</label>
+          <label><input type="radio" name="q6" value="どちらかというと重視する"> どちらかというと重視する</label>
+          <label><input type="radio" name="q6" value="とても重視する"> とても重視する</label>
+        </fieldset>
+
+        <!-- Q7 -->
+        <fieldset>
+          <legend>Q7. 対面での評価やフィードバックをどの程度重要だと感じますか？（単一選択）</legend>
+          <label><input type="radio" name="q7" value="重要と感じない"> 重要と感じない</label>
+          <label><input type="radio" name="q7" value="どちらかといえば重要とは感じない"> どちらかといえば重要とは感じない</label>
+          <label><input type="radio" name="q7" value="どちらともいえない"> どちらともいえない</label>
+          <label><input type="radio" name="q7" value="どちらかといえば重要だと感じる"> どちらかといえば重要だと感じる</label>
+          <label><input type="radio" name="q7" value="非常に重要だと感じる"> 非常に重要だと感じる</label>
+        </fieldset>
+
+        <!-- Q8 -->
+        <fieldset>
+          <legend>Q8. 理想的な勤務スタイル（出社と在宅の割合）についてご意見があれば教えてください。（自由記述）</legend>
+          <textarea name="q8" rows="4" placeholder="回答を入力してください"></textarea>
+        </fieldset>
+
+        <!-- Q9 -->
+        <fieldset>
+          <legend>Q9. 出社やリモートワークの運用に関して、ご希望や改善点があれば自由にお書きください。（自由記述）</legend>
+          <textarea name="q9" rows="4" placeholder="回答を入力してください"></textarea>
+        </fieldset>
+
+        <button type="submit">アンケートを送信</button>
+      </form>
+    </section>
+    <!-- アンケートここまで -->
     <footer>
       <small>&copy; 働き方スタイル診断</small>
     </footer>
