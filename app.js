@@ -44,6 +44,7 @@ const typeDefinitions = {
 
 // DOM の取得
 const form = document.getElementById("diagnosis-form");
+console.log("form =", form);
 const surveyForm = document.getElementById("survey-form");
 const summarySection = document.getElementById("summary-section");
 const resultSection = document.getElementById("result-section");
@@ -58,6 +59,7 @@ const userPoint = document.getElementById("user-point");
 
 // フォーム送信時の処理（Q1,Q2 → マップ）
 form.addEventListener("submit", function (event) {
+  console.log("submit fired");
   event.preventDefault();
 
   const q1Value = getRadioValue("q1");
